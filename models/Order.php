@@ -22,17 +22,26 @@ use yii\db\ActiveRecord;
  */
 class Order extends ActiveRecord
 {
-    const STATUSES = [
-        0 => 'Pending',
-        1 => 'In progress',
-        2 => 'Completed',
-        3 => 'Canceled',
-        4 => 'Error',
+    public const STATUS_PENDING = 0;
+    public const STATUS_IN_PROGRESS = 1;
+    public const STATUS_COMPLETED = 2;
+    public const STATUS_CANCELED = 3;
+    public const STATUS_ERROR = 4;
+
+    public const STATUSES = [
+        self::STATUS_PENDING     => 'Pending',
+        self::STATUS_IN_PROGRESS => 'In progress',
+        self::STATUS_COMPLETED   => 'Completed',
+        self::STATUS_CANCELED    => 'Canceled',
+        self::STATUS_ERROR       => 'Error',
     ];
 
-    const MODES = [
-        0 => 'Manual',
-        1 => 'Auto',
+    public const MODE_MANUAL = 0;
+    public const MODE_AUTO = 1;
+
+    public const MODES = [
+        self::MODE_MANUAL => 'Manual',
+        self::MODE_AUTO   => 'Auto',
     ];
 
     /**

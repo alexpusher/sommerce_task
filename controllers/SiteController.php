@@ -2,8 +2,8 @@
 
 namespace app\controllers;
 
+use app\models\OrderSearch;
 use Yii;
-use yii\data\SqlDataProvider;
 use yii\web\Controller;
 
 /**
@@ -19,26 +19,10 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        $totalOrdersCount = Yii::$app->db->createCommand('SELECT COUNT(*) FROM orders')->queryScalar();
-
-        $dataProvider = new SqlDataProvider([
-            'sql' => 'SELECT * FROM orders',
-            'params' => [],
-            'totalCount' => $totalOrdersCount,
-            'sort' => [
-                'attributes' => [
-                    'id'
-                ],
-                'defaultOrder' => [
-                    'id' => SORT_DESC
-                ]
-            ],
-            'pagination' => [
-                'pageSize' => 100,
-            ],
-        ]);
-
+        $searchModel = new OrderSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->getQueryParams());
         return $this->render('orders', [
+            'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
     }
