@@ -43,6 +43,8 @@ class Order extends ActiveRecord
         self::MODE_MANUAL => 'Manual',
         self::MODE_AUTO   => 'Auto',
     ];
+    
+    public const FILE_NAME = 'orders.csv';
 
     /**
      * {@inheritdoc}

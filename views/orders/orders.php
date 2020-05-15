@@ -7,6 +7,7 @@
 
 use app\models\Order;
 use app\models\OrderSearch;
+use app\models\Service;
 use app\widgets\OrderSearchPanel;
 use yii\data\SqlDataProvider;
 use yii\grid\GridView;
@@ -16,16 +17,21 @@ use yii\web\View;
 $this->title = 'Orders';
 $this->params['breadcrumbs'][] = $this->title;
 
-$orderStatuses = Order::STATUSES;
 $orderModes = Order::MODES;
-$getParams = Yii::$app->request->get();
+$services = Service::getServicesWithOrdersCount();
+$countServices = count($services);
+$summary = $dataProvider->getTotalCount() > OrderSearch::PAGE_SIZE ? '{begin} to {end} of {totalCount}' : '{totalCount}';
 ?>
+<div>
+    <a href="orders/download" id="export-trigger" class="btn btn-success">Export</a>
+</div>
 <?= OrderSearchPanel::widget(['model' => $searchModel])?>
 <?=
 GridView::widget([
     'dataProvider' => $dataProvider,
     'filterModel' => $searchModel,
     'pager' => ['maxButtonCount' => 10],
+    'summary' => $summary,
     'columns' => [
         [
             'label' => Yii::t('app', 'ID'),
@@ -46,15 +52,18 @@ GridView::widget([
         [
             'label' => Yii::t('app', 'Service'),
             'attribute' => 'service.name',
-            /*'value' => static function($data) {
-                return date('Y-m-d H:i:s', $data['created_at']);
-            },*/
+            'filter' => Html::activeDropDownList(
+                $searchModel,
+                'service_id',
+                $services,
+                ['class'=>'form-control','prompt' => "All ({$countServices})"]
+            )
         ],
         [
             'label' => Yii::t('app', 'Status'),
             'attribute' => 'status',
-            'value' => static function($data) use($orderStatuses) {
-                return $orderStatuses[$data['status']];
+            'value' => static function($data) {
+                return Order::STATUSES[$data['status']];
             },
         ],
         [

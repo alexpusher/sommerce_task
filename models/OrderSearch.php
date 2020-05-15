@@ -2,12 +2,9 @@
 
 namespace app\models;
 
-use app\widgets\OrderSearchPanel;
-use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use yii\db\Exception;
-use yii\db\Query;
 
 /**
  * This is the model class for table "orders".
@@ -25,6 +22,17 @@ use yii\db\Query;
  */
 class OrderSearch extends Order
 {
+    public const SELECT_OPTION_ORDER_ID = 1;
+    public const SELECT_OPTION_LINK     = 2;
+    public const SELECT_OPTION_USERNAME = 3;
+
+    public const SELECT_OPTIONS = [
+        self::SELECT_OPTION_ORDER_ID => 'Order ID',
+        self::SELECT_OPTION_LINK     => 'Link',
+        self::SELECT_OPTION_USERNAME => 'Username',
+    ];
+
+    public const PAGE_SIZE = 100;
 
     /**
      * {@inheritdoc}
@@ -32,7 +40,7 @@ class OrderSearch extends Order
     public function rules()
     {
         return [
-            [['mode'], 'safe']
+            [['service_id','mode'], 'safe']
         ];
     }
 
@@ -50,18 +58,14 @@ class OrderSearch extends Order
      */
     public function search(array $params): ActiveDataProvider
     {
-        /*$query = (new Query())
-            ->select('*')
-            ->from('orders');*/
         $query = Order::find();
-
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'sort' => [
                 'defaultOrder' => ['id' => SORT_DESC],
             ],
             'pagination' => [
-                'pageSize' => 100,
+                'pageSize' => self::PAGE_SIZE,
             ],
         ]);
 
@@ -72,6 +76,7 @@ class OrderSearch extends Order
         $params = $params[$this->formName()];
 
         $query->andFilterWhere(['mode' => $this->mode]);
+        $query->andFilterWhere(['service_id' => $this->service_id]);
 
         if (isset($params['status'], self::STATUSES[$params['status']])) {
             $query->andWhere('status = :status', [':status' => $params['status']]);
@@ -80,20 +85,20 @@ class OrderSearch extends Order
         if (isset(
             $params['search'],
             $params['search-type'],
-            OrderSearchPanel::SELECT_OPTIONS[$params['search-type']]
+            self::SELECT_OPTIONS[$params['search-type']]
         ) && $params['search'] !== '') {
             switch ($params['search-type']) {
-                case OrderSearchPanel::SELECT_OPTION_ORDER_ID:
+                case self::SELECT_OPTION_ORDER_ID:
                     $rowName = 'id';
                     break;
-                case OrderSearchPanel::SELECT_OPTION_LINK:
+                case self::SELECT_OPTION_LINK:
                     $rowName = 'link';
                     break;
-                case OrderSearchPanel::SELECT_OPTION_USERNAME:
+                case self::SELECT_OPTION_USERNAME:
                     $rowName = 'user';
                     break;
                 default:
-                    throw new Exception('Wrong search type');
+                    throw new Exception('Invalid search type');
             }
 
             $query->andWhere("$rowName like :searchString", [':searchString' => "%{$params['search']}%"]);

@@ -4,28 +4,19 @@ namespace app\widgets;
 use app\models\Order;
 use app\models\OrderSearch;
 use Yii;
+use yii\bootstrap\Widget;
 use yii\helpers\ArrayHelper;
 
 /**
  * Class SearchStatuses
  * @package app\widgets
  */
-class OrderSearchPanel extends \yii\bootstrap\Widget
+class OrderSearchPanel extends Widget
 {
     public const STATUS_ALL_ORDERS = -1;
 
     public const SEARCH_STATUSES = [
         self::STATUS_ALL_ORDERS => 'All orders'
-    ];
-
-    public const SELECT_OPTION_ORDER_ID = 1;
-    public const SELECT_OPTION_LINK     = 2;
-    public const SELECT_OPTION_USERNAME = 3;
-
-    public const SELECT_OPTIONS = [
-        self::SELECT_OPTION_ORDER_ID => 'Order ID',
-        self::SELECT_OPTION_LINK     => 'Link',
-        self::SELECT_OPTION_USERNAME => 'Username',
     ];
 
     /**
@@ -40,9 +31,9 @@ class OrderSearchPanel extends \yii\bootstrap\Widget
     {
         $requestParams = $this->getRequestParams();
         return $this->render('_search', [
-            'model'          => $this->model,
-            'searchStatuses' => $this->getSearchStatuses($requestParams),
-            'searchOrderParams' => $this->getSearchOrderParams($requestParams),
+            'model'             => $this->model,
+            'searchStatuses'    => $this->getSearchStatusesStructure($requestParams),
+            'searchOrderParams' => $this->getSearchOrderStructure($requestParams),
         ]);
     }
 
@@ -50,7 +41,7 @@ class OrderSearchPanel extends \yii\bootstrap\Widget
      * @param array $requestParams
      * @return array
      */
-    private function getSearchStatuses(array $requestParams): array
+    private function getSearchStatusesStructure(array $requestParams): array
     {
         $statuses = ArrayHelper::merge(self::SEARCH_STATUSES, Order::STATUSES);
         $searchStatuses = [];
@@ -84,34 +75,35 @@ class OrderSearchPanel extends \yii\bootstrap\Widget
      */
     private function getSearchStatusParam(int $statusId, array $requestParams): string
     {
-        $param = [];
+        $params = [];
 
         $statuses = array_keys(Order::STATUSES);
         if (in_array($statusId, $statuses, true)) {
-            $param[] = "{$this->model->formName()}[status]=$statusId";
+            $params[] = "{$this->model->formName()}[status]=$statusId";
         }
 
-        if (isset($requestParams['search'])) {
-            $param[] = "{$this->model->formName()}[search]={$requestParams['search']}";
+        if (isset($requestParams['search']) && $requestParams['search'] !== '') {
+            $params[] = "{$this->model->formName()}[search]={$requestParams['search']}";
         }
 
-        if (isset($requestParams['search-type'], self::SELECT_OPTIONS[$requestParams['search-type']])) {
-            $param[] = "{$this->model->formName()}[search-type]={$requestParams['search-type']}";
+        if (isset($requestParams['search-type'], OrderSearch::SELECT_OPTIONS[$requestParams['search-type']])) {
+            $params[] = "{$this->model->formName()}[search-type]={$requestParams['search-type']}";
         }
 
-        return $param ? '?'.implode('&', $param) : '';
+        return $params ? '?'.implode('&', $params) : '';
     }
 
     /**
      * @param array $requestParams
      * @return array
      */
-    private function getSearchOrderParams(array $requestParams): array
+    private function getSearchOrderStructure(array $requestParams): array
     {
         $options = [];
-        foreach (self::SELECT_OPTIONS as $optionId => $optionName) {
-            $paramOptionId = self::SELECT_OPTION_ORDER_ID;
-            if (isset($requestParams['search-type'], self::SELECT_OPTIONS[$requestParams['search-type']])) {
+        $orderOptions = OrderSearch::SELECT_OPTIONS;
+        foreach ($orderOptions as $optionId => $optionName) {
+            $paramOptionId = OrderSearch::SELECT_OPTION_ORDER_ID;
+            if (isset($requestParams['search-type'], $orderOptions[$requestParams['search-type']])) {
                 $paramOptionId = $requestParams['search-type'];
             }
 
